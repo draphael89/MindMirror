@@ -1,27 +1,48 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import Sidebar from './components/Sidebar'
-import Dashboard from './components/Dashboard'
-import EssayView from './components/EssayView'
-import VoiceNoteInput from './components/VoiceNoteInput'
-import EssayList from './components/EssayList'
-import './App.css'
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import PublicLayout from './layouts/PublicLayout';
+import AppLayout from './layouts/AppLayout';
+import PrivateRoute from './components/common/PrivateRoute';
 
-function App() {
+const LandingPage = lazy(() => import('./pages/public/LandingPage'));
+const SignUpPage = lazy(() => import('./pages/public/SignUpPage'));
+const DashboardPage = lazy(() => import('./pages/app/DashboardPage'));
+const EssayListPage = lazy(() => import('./pages/app/EssayListPage'));
+
+const App: React.FC = () => {
   return (
-    <Router>
-      <div className="flex h-screen bg-gray-100">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto p-5">
+    <AuthProvider>
+      <Router>
+        <Suspense fallback={<div>Loading...</div>}>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/essays" element={<EssayList />} />
-            <Route path="/essay/:id" element={<EssayView />} />
-            <Route path="/voice-note" element={<VoiceNoteInput />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route element={<PublicLayout />}>
+              <Route path="/signup" element={<SignUpPage />} />
+            </Route>
+            <Route element={<AppLayout />}>
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute>
+                    <DashboardPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/essays"
+                element={
+                  <PrivateRoute>
+                    <EssayListPage />
+                  </PrivateRoute>
+                }
+              />
+            </Route>
           </Routes>
-        </main>
-      </div>
-    </Router>
-  )
-}
+        </Suspense>
+      </Router>
+    </AuthProvider>
+  );
+};
 
-export default App
+export default App;

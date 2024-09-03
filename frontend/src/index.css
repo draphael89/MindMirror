@@ -1,6 +1,21 @@
+/* eslint-disable */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cosmic-gradient from-background-cosmic-from to-background-cosmic-to text-text-light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
 
 html, body, #root {
   height: 100%;
@@ -9,9 +24,15 @@ html, body, #root {
   overflow-x: hidden;
 }
 
-body {
-  background-color: theme('colors.background.cosmic');
-  color: theme('colors.text.light');
-}
+/* Remove the duplicate background-color and color properties */
 
 /* Your custom styles go here */
+
+@layer utilities {
+  .text-glow-hover {
+    transition: text-shadow 0.3s ease-in-out;
+  }
+  .text-glow-hover:hover {
+    text-shadow: 0 0 20px rgba(76, 201, 240, 0.6), 0 0 35px rgba(76, 201, 240, 0.4), 0 0 50px rgba(76, 201, 240, 0.2);
+  }
+}

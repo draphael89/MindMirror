@@ -1,63 +1,95 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
+const colors = require("tailwindcss/colors");
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
-  content: [
-    './src/**/*.{js,jsx,ts,tsx}',
-    './index.html',
-  ],
+  content: ["./src/**/*.{ts,tsx}"],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
         background: {
-          light: "hsl(222, 47%, 11%)",
-          dark: "hsl(222, 47%, 5%)",
-          cosmic: "hsl(240, 67%, 8%)",
+          cosmic: {
+            DEFAULT: "#050314",
+            from: "#050314",
+            to: "#1C0E3C",
+          },
         },
         text: {
-          light: "hsl(210, 40%, 98%)",
-          dark: "hsl(210, 40%, 98%)",
+          light: "#FFFFFF",
+          accent: {
+            cyan: "#4CC9F0",
+            pink: "#F72585",
+            orange: "#FF9E00",
+          },
         },
         primary: {
-          light: "hsl(217, 91%, 60%)",
-          DEFAULT: "hsl(217, 91%, 60%)",
-          dark: "hsl(217, 91%, 60%)",
-        },
-        secondary: {
-          light: "hsl(271, 91%, 65%)",
-          DEFAULT: "hsl(271, 91%, 65%)",
-          dark: "hsl(271, 91%, 65%)",
-        },
-        accent: {
-          light: "hsl(52, 100%, 50%)",
-          DEFAULT: "hsl(52, 100%, 50%)",
-          dark: "hsl(52, 100%, 50%)",
-        },
-      },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        heading: ['Space Grotesk', 'sans-serif'],
-      },
-      boxShadow: {
-        'neon': '0 0 5px theme("colors.primary.light"), 0 0 20px theme("colors.primary.light")',
-      },
-      keyframes: {
-        shimmer: {
-          '0%': { backgroundPosition: '-1000px 0' },
-          '100%': { backgroundPosition: '1000px 0' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-20px)' },
+          light: "#4CC9F0",
         },
       },
       animation: {
         shimmer: 'shimmer 2s linear infinite',
         float: 'float 6s ease-in-out infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'glow': 'glow 2s ease-in-out infinite',
+        'text-glow-hover': 'textGlowHover 0.3s ease-in-out forwards',
+      },
+      keyframes: {
+        // ... (keep existing keyframes)
+        glow: {
+          '0%, 100%': { 
+            opacity: 1,
+            textShadow: '0 0 5px rgba(76, 201, 240, 0.3), 0 0 10px rgba(76, 201, 240, 0.2), 0 0 15px rgba(76, 201, 240, 0.1)'
+          },
+          '50%': { 
+            opacity: 0.8,
+            textShadow: '0 0 20px rgba(76, 201, 240, 0.6), 0 0 35px rgba(76, 201, 240, 0.4), 0 0 50px rgba(76, 201, 240, 0.2)'
+          },
+        },
+        textGlowHover: {
+          '0%': { textShadow: '0 0 5px rgba(76, 201, 240, 0.3)' },
+          '100%': { textShadow: '0 0 20px rgba(76, 201, 240, 0.6), 0 0 35px rgba(76, 201, 240, 0.4), 0 0 50px rgba(76, 201, 240, 0.2)' },
+        },
       },
       backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'cosmic-gradient': 'linear-gradient(to bottom, var(--tw-gradient-stops))',
+      },
+      fontSize: {
+        '10xl': '10rem',
+        '11xl': '12rem',
+        '12xl': '14rem',
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    addVariablesForColors,
+    function({ addUtilities, theme }) {
+      const newUtilities = {
+        '.text-glow': {
+          textShadow: '0 0 5px rgba(76, 201, 240, 0.3), 0 0 10px rgba(76, 201, 240, 0.2), 0 0 15px rgba(76, 201, 240, 0.1)',
+        },
+        '.text-glow-hover': {
+          '&:hover': {
+            textShadow: '0 0 20px rgba(76, 201, 240, 0.6), 0 0 35px rgba(76, 201, 240, 0.4), 0 0 50px rgba(76, 201, 240, 0.2)',
+          },
+        },
+      };
+      addUtilities(newUtilities, ['responsive', 'hover']);
+    },
+  ],
+};
+
+// This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
+function addVariablesForColors({ addBase, theme }) {
+  let allColors = flattenColorPalette(theme("colors"));
+  let newVars = Object.fromEntries(
+    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+  );
+
+  addBase({
+    ":root": newVars,
+  });
 }

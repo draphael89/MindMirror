@@ -13,7 +13,7 @@ const EssayListPage = lazy(() => import('./pages/app/EssayListPage'));
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/">
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />

@@ -5,10 +5,9 @@ const BinaryRainEffect: React.FC = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const ctx = canvas?.getContext('2d');
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!canvas || !ctx) return;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -26,17 +25,16 @@ const BinaryRainEffect: React.FC = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#0f0';
-      ctx.font = fontSize + 'px arial';
+      ctx.fillStyle = '#0F0';
+      ctx.font = '10px monospace';
 
       for (let i = 0; i < drops.length; i++) {
-        const text = binary.charAt(Math.floor(Math.random() * binary.length));
+        const text = binary[Math.floor(Math.random() * binary.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
-
         drops[i]++;
       }
     }
@@ -46,7 +44,7 @@ const BinaryRainEffect: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0" />;
+  return <canvas ref={canvasRef} className="w-full h-full" />;
 };
 
 export default BinaryRainEffect;

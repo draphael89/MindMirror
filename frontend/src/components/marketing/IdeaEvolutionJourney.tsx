@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, useTransform, useScroll } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { cn } from "@/lib/utils";
 

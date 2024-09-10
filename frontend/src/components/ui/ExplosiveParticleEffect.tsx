@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { animate } from 'framer-motion';
 
 const ExplosiveParticleEffect: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -7,7 +7,7 @@ const ExplosiveParticleEffect: React.FC = () => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const particles = Array.from({ length: 50 }, (_, i) => ({
+    const particles = Array.from({ length: 50 }, () => ({
       x: Math.random() * 100 - 50,
       y: Math.random() * 100 - 50,
       scale: Math.random() * 0.5 + 0.5,
@@ -19,7 +19,7 @@ const ExplosiveParticleEffect: React.FC = () => {
       element.className = 'absolute w-2 h-2 bg-white rounded-full';
       containerRef.current?.appendChild(element);
 
-      motion.animate(element, {
+      animate(element, {
         x: particle.x + 'vw',
         y: particle.y + 'vh',
         scale: particle.scale,

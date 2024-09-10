@@ -1,22 +1,40 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useAnimation, useInView } from 'framer-motion';
 import { IconBrain, IconMicrophone, IconPencil } from '@tabler/icons-react';
 import { CanvasRevealEffect } from '../ui/canvas-reveal-effect';
 import { BackgroundBeams } from '../ui/background-beams';
 import { FlipWords } from '../ui/flip-words';
+import { useVisibilityChange } from '../../hooks/useVisibilityChange';
 
 const HeroSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
   const controls = useAnimation();
+  const isVisible = useVisibilityChange();
+
+  const logPerformance = useCallback(() => {
+    if (window.performance) {
+      const perfEntries = window.performance.getEntriesByType("navigation");
+      console.log("Navigation performance:", perfEntries[0]);
+      
+      const paintEntries = window.performance.getEntriesByType("paint");
+      console.log("Paint performance:", paintEntries);
+    }
+  }, []);
 
   useEffect(() => {
+    console.log("HeroSection mounted");
     if (isInView) {
+      console.log("HeroSection in view, starting animation");
       controls.start("visible");
     }
-  }, [isInView, controls]);
+    logPerformance();
+    return () => {
+      console.log("HeroSection unmounted");
+    };
+  }, [isInView, controls, logPerformance]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -77,13 +95,6 @@ const HeroSection: React.FC = () => {
     },
   };
 
-  const flipWords = [
-    "Amplify Your Mind with AI",
-    "Enter into Symbiosis with AI",
-    "Become Prolific with AI",
-    "Scry Your Soul with AI"
-  ];
-
   const subheadingFlipWords = [
     "Transform your raw thoughts into mind-bending essays, and discover who you truly are.",
     "Alchemize your mental chaos into gold. Watch your half-baked ideas morph into mind-blowing manifestos.",
@@ -92,7 +103,7 @@ const HeroSection: React.FC = () => {
   ];
 
   return (
-    <section ref={sectionRef} className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden px-4 sm:px-6 lg:px-8 bg-background-cosmic">
+    <section ref={sectionRef} className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden px-4 sm:px-6 lg:px-8 bg-background-cosmic pb-8 sm:pb-12"> {/* Reduced bottom padding */}
       <CanvasRevealEffect 
         containerClassName="absolute inset-0 z-10" 
         color="#4B0082" 
@@ -109,24 +120,21 @@ const HeroSection: React.FC = () => {
           initial="hidden"
           animate={controls}
         >
-          <motion.div 
+          <motion.h1 
             variants={itemVariants} 
-            className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] 2xl:text-[12rem] font-extrabold mb-8 sm:mb-10 text-text-accent-cyan animate-glow tracking-tighter leading-none"
+            className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] 2xl:text-[12rem] font-extrabold mb-6 sm:mb-8 text-text-accent-cyan animate-glow tracking-tighter leading-none"
           >
-            <FlipWords 
-              words={flipWords}
-              durations={flipWords.map(() => 3000)}  // 3 seconds for each word
-              className="text-glow"
-            />
-          </motion.div>
+            Fuse Your Mind with AI
+          </motion.h1>
           <motion.div 
             variants={itemVariants} 
-            className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-text-light max-w-3xl mx-auto leading-relaxed"
+            className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-6 sm:mb-8 text-text-light max-w-3xl mx-auto leading-relaxed"
           >
             <FlipWords 
               words={subheadingFlipWords}
-              durations={subheadingFlipWords.map(() => 10000)}  // 10 seconds for each subheading
+              durations={subheadingFlipWords.map(() => 20000)}  // 20 seconds for each subheading
               className="text-glow-hover"
+              isActive={isVisible}
             />
           </motion.div>
           <motion.div
@@ -167,4 +175,4 @@ const HeroSection: React.FC = () => {
   );
 };
 
-export default HeroSection;
+export default React.memo(HeroSection);

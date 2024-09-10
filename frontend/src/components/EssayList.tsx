@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FocusCards, Card } from './ui/focus-cards'
+import { FocusCards } from './ui/focus-cards'
 import LazyImage from './ui/LazyImage'
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 
@@ -11,27 +10,39 @@ interface Essay {
   createdAt: string
   tags: string[]
   imageUrl: string
-  src: string // Add this line
+  src: string
+  content: ReactNode
 }
 
-function EssayCard({ card, index, hovered, setHovered }: { card: Essay; index: number; hovered: number | null; setHovered: React.Dispatch<React.SetStateAction<number | null>> }) {
+interface EssayCardProps {
+  card: Essay
+  index: number
+  hovered: number | null
+  setHovered: React.Dispatch<React.SetStateAction<number | null>>
+}
+
+function EssayCard({ card, index, hovered, setHovered }: EssayCardProps) {
   return (
-    <Card card={{ src: card.imageUrl, title: card.title }} index={index} hovered={hovered} setHovered={setHovered}>
-      <div className="flex flex-col h-full justify-end">
-        <LazyImage src={card.imageUrl} alt={card.title} className="absolute inset-0 w-full h-full object-cover" />
-        <div className="relative z-10 p-4 bg-gradient-to-t from-background-dark to-transparent">
-          <h3 className="text-xl font-semibold mb-2 text-text-light">{card.title}</h3>
-          <p className="text-sm mb-2 text-text-light/70">Created on: {new Date(card.createdAt).toLocaleDateString()}</p>
-          <div className="flex flex-wrap gap-2">
-            {card.tags.map((tag) => (
-              <span key={tag} className="px-2 py-1 bg-secondary-light/30 text-xs rounded-full text-text-light">
-                {tag}
-              </span>
-            ))}
-          </div>
+    <motion.div
+      onMouseEnter={() => setHovered(index)}
+      onMouseLeave={() => setHovered(null)}
+      className={`relative h-96 md:h-[32rem] w-full rounded-lg overflow-hidden transition-all duration-300 ease-out ${
+        hovered !== null && hovered !== index ? 'blur-sm scale-[0.98]' : ''
+      }`}
+    >
+      <LazyImage src={card.imageUrl} alt={card.title} className="absolute inset-0 w-full h-full object-cover" />
+      <div className="relative z-10 p-4 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col justify-end h-full">
+        <h3 className="text-xl font-semibold mb-2 text-text-light">{card.title}</h3>
+        <p className="text-sm mb-2 text-text-light/70">Created on: {new Date(card.createdAt).toLocaleDateString()}</p>
+        <div className="flex flex-wrap gap-2">
+          {card.tags.map((tag) => (
+            <span key={tag} className="px-2 py-1 bg-secondary-light/30 text-xs rounded-full text-text-light">
+              {tag}
+            </span>
+          ))}
         </div>
       </div>
-    </Card>
+    </motion.div>
   )
 }
 
@@ -45,14 +56,15 @@ function EssayList() {
     const fetchEssays = async () => {
       setIsLoading(true)
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       const mockEssays: Essay[] = Array.from({ length: 20 }, (_, i) => ({
         id: `${i + 1}`,
         title: `Essay ${i + 1}`,
         createdAt: new Date(Date.now() - i * 86400000).toISOString(),
         tags: ['tag1', 'tag2'],
         imageUrl: `https://source.unsplash.com/random/800x600?essay=${i + 1}`,
-        src: `https://source.unsplash.com/random/800x600?essay=${i + 1}` // Add this line
+        src: `https://source.unsplash.com/random/800x600?essay=${i + 1}`,
+        content: <div>Essay content placeholder</div>
       }))
       setEssays(mockEssays)
       setIsLoading(false)
@@ -94,13 +106,20 @@ function EssayList() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <FocusCards cards={currentEssays}>
-                {(card, index, hovered, setHovered) => (
-                  <Link to={`/essay/${card.id}`} key={card.id}>
-                    <EssayCard card={card} index={index} hovered={hovered} setHovered={setHovered} />
-                  </Link>
-                )}
-              </FocusCards>
+              <FocusCards
+                cards={currentEssays.map((essay, index) => ({
+                  title: essay.title,
+                  src: essay.imageUrl,
+                  content: (
+                    <EssayCard
+                      card={essay}
+                      index={index}
+                      hovered={null}
+                      setHovered={() => {}}
+                    />
+                  )
+                }))}
+              />
             </motion.div>
           </AnimatePresence>
         )}

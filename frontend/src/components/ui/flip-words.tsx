@@ -1,38 +1,40 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export const FlipWords = ({
-  words,
-  durations,
-  className,
-  style,
-}: {
+export const FlipWords: React.FC<{
   words: string[];
   durations: number[];
   className?: string;
   style?: React.CSSProperties;
-}) => {
-  const [currentWord, setCurrentWord] = useState(words[0]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  isActive?: boolean;
+  initialDelay?: number; // Add this prop
+}> = ({ words, durations, className, style, isActive = true, initialDelay = 0 }) => {
+  const [index, setIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
-  const startAnimation = useCallback(() => {
-    const nextIndex = (currentIndex + 1) % words.length;
-    setCurrentWord(words[nextIndex]);
-    setCurrentIndex(nextIndex);
-    setIsAnimating(true);
-  }, [currentIndex, words]);
+  const cycleWords = useCallback(() => {
+    if (isActive && !isAnimating && hasStarted) {
+      setIsAnimating(true);
+      setIndex((prevIndex) => (prevIndex + 1) % words.length);
+    }
+  }, [words.length, isActive, isAnimating, hasStarted]);
 
   useEffect(() => {
-    if (!isAnimating) {
+    if (!hasStarted) {
       const timer = setTimeout(() => {
-        startAnimation();
-      }, durations[currentIndex]);
+        setHasStarted(true);
+      }, initialDelay);
       return () => clearTimeout(timer);
     }
-  }, [isAnimating, durations, currentIndex, startAnimation]);
+
+    const interval = setInterval(cycleWords, durations[index]);
+    return () => clearInterval(interval);
+  }, [cycleWords, durations, index, hasStarted, initialDelay]);
+
+  const currentWord = words[index];
 
   return (
     <AnimatePresence
@@ -69,7 +71,7 @@ export const FlipWords = ({
         style={style}
         key={currentWord}
       >
-        {currentWord.split(" ").map((word, wordIndex) => (
+        {currentWord.split(" ").map((word: string, wordIndex: number) => (
           <motion.span
             key={word + wordIndex}
             initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}

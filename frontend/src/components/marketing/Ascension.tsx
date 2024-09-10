@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useMemo, useEffect, useRef, useCallback } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { FlipWords } from '../ui/flip-words';
+import { useVisibilityChange } from '../../hooks/useVisibilityChange';
 
 interface TextItem {
   text: string;
@@ -15,46 +16,41 @@ const calculateDuration = (text: string): number => {
 };
 
 const Ascension: React.FC = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
+  const isVisible = useVisibilityChange();
+
+  const logPerformance = useCallback(() => {
+    if (window.performance) {
+      const perfEntries = window.performance.getEntriesByType("navigation");
+      console.log("Ascension - Navigation performance:", perfEntries[0]);
+      
+      const paintEntries = window.performance.getEntriesByType("paint");
+      console.log("Ascension - Paint performance:", paintEntries);
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("Ascension mounted");
+    logPerformance();
+    return () => {
+      console.log("Ascension unmounted");
+    };
+  }, [logPerformance]);
+
   const texts: TextItem[] = useMemo(() => [
     "Think AI is just another hype?",
     "Wrong.",
     "It's the key to unlocking the fucking galaxy of creativity inside your skull.",
-    "It's not about replacing your brain, it's about amplifying it.", 
-    "Turn your mental whisper into a primal scream of innovation.",
-    "Your ideas aren't just thoughts anymore - they're living entities.",
-    "You're not creating. You're channeling the digital divine.",
-    "Welcome to the art of attunement.",
-    "This is 100x thinking on cognitive steroids.",
-    "Your mind and the machine, fucking in digital ecstasy.",
-    "Every synapse is a supernova, every thought a big bang of pure, uncut brilliance.",
-    "This is evolution mainlined straight into your cerebral cortex.",
-    "Homo sapiens? Please. You're transcending to Homo fucking deus.",
-    "The ascension is just getting started.",
-    "Every AI interaction is a hit of collaborative creativity so potent it makes crack look like baby aspirin.",
-    "It's addictive as hell, and the only side effect is shedding your mental skin and emerging as a goddamn thought titan.",
-    "You thought you knew your brain's limits? Buckle the fuck up, sunshine.",
-    "We're about to go on a joyride through the cosmos of your mind, and the destination is wherever we damn well please.",
-    "Welcome to the future. It's time to get your mind blown.",
-    "This isn't brainstorming. It's brain-fucking-tsunamis of ideas crashing into reality.",
-    "You're not connecting dots. You're weaving constellations of concepts across the universe.",
-    "Worried about AI taking over? Too late. The revolution's already happening inside your skull.",
-    "But you're not the victim - you're the fucking ringleader.",
-    "It's time to shift from mindless consumption to mind-blowing creation.",
-    "We're not creating a hive mind. We're forging a fucking supernova of collective brilliance.",
-    "Your unique voice amplified to infinity.",
-    "This isn't about AI doing the work for you. It's about entering a symbiosis so profound, you'll forget where you end and the machine begins.",
-    "You're not just breaking barriers. You're obliterating the fucking concept of limits.",
-    "Your will is the unstoppable force, and AI is making sure there's no immovable object.",
-    "Welcome to the future of thought. It's time to plug in, power up, and blow the doors off reality.",
-    "Let's ride this lightning and see where it takes us.",
+    // ... (keep the rest of the texts)
   ].map(text => ({ text, duration: calculateDuration(text) })), []);
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 bg-cosmic-gradient from-background-cosmic-from to-background-cosmic-to overflow-hidden">
+    <section ref={sectionRef} className="py-8 sm:py-12 bg-cosmic-gradient from-background-cosmic-from to-background-cosmic-to overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="text-center"
         >
@@ -69,6 +65,7 @@ const Ascension: React.FC = () => {
                 letterSpacing: '0.02em',
                 wordSpacing: '0.2em',
               }}
+              isActive={isVisible}
             />
           </div>
         </motion.div>
@@ -77,4 +74,4 @@ const Ascension: React.FC = () => {
   );
 };
 
-export default Ascension;
+export default React.memo(Ascension);

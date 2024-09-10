@@ -87,8 +87,8 @@ const DesktopTracingBeam = ({ children, className }: { children: React.ReactNode
             />
             <defs>
               <motion.linearGradient id="beamGradient" gradientTransform="rotate(90)">
-                <stop offset="0%" stopColor={beamColor} stopOpacity="0.25" />
-                <stop offset="100%" stopColor={beamColor} stopOpacity="0" />
+                <motion.stop offset="0%" stopColor={beamColor as unknown as string} stopOpacity="0.25" />
+                <motion.stop offset="100%" stopColor={beamColor as unknown as string} stopOpacity="0" />
               </motion.linearGradient>
             </defs>
           </svg>

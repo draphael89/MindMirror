@@ -55,12 +55,12 @@ const AttunementSection: React.FC = () => {
               staggerDuration={0.5}  // Increase this value to slow down the delay between each word
             />
           </h1>
-          <p className="text-xl sm:text-2xl md:text-3xl text-text-light/80 max-w-3xl mx-auto leading-relaxed">
+          <div className="text-xl sm:text-2xl md:text-3xl text-text-light/80 max-w-3xl mx-auto leading-relaxed">
             <TextGenerateEffect 
               words="Think AI is just another tech buzzword? Wrong. It's the key to unlocking the fucking galaxy of creativity inside your skull."
               className="text-glow-hover"
             />
-          </p>
+          </div>
         </motion.div>
 
         {subsections.map((subsection, index) => (

@@ -15,8 +15,13 @@ export default defineConfig({
   },
   base: '/',
   build: {
-    outDir: 'dist',
+    outDir: 'dist', // Changed back to 'dist'
     assetsDir: 'assets',
     emptyOutDir: true,
+  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3001'
+    }
   },
 })

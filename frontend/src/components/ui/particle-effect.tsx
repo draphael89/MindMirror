@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
 interface Particle {
   x: number;
@@ -14,33 +14,20 @@ interface Particle {
 const ParticleEffect: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  useEffect(() => {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDarkMode(prefersDark);
+  const createNewParticle = useCallback((width: number, startY: number): Particle => ({
+    x: Math.random() * width,
+    y: startY,
+    vx: (Math.random() - 0.5) * 2,
+    vy: Math.random() * 2 + 1,
+    alpha: 0.5 + Math.random() * 0.5,
+    color: lerpColor('#4B0082', '#1E90FF', Math.random()),
+    size: 1 + Math.random() * 3
+  }), []);
 
-    if (canvasRef.current) {
-      initializeParticles();
-    }
-
-    const handleResize = () => {
-      if (canvasRef.current) {
-        canvasRef.current.width = window.innerWidth;
-        canvasRef.current.height = window.innerHeight;
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  const initializeParticles = () => {
+  const initializeParticles = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -98,17 +85,26 @@ const ParticleEffect: React.FC = () => {
     };
 
     animate();
-  };
+  }, [mousePosition, scrollPosition, createNewParticle]);
 
-  const createNewParticle = (width: number, startY: number): Particle => ({
-    x: Math.random() * width,
-    y: startY,
-    vx: (Math.random() - 0.5) * 2,
-    vy: Math.random() * 2 + 1,
-    alpha: 0.5 + Math.random() * 0.5,
-    color: lerpColor('#4B0082', '#1E90FF', Math.random()),
-    size: 1 + Math.random() * 3
-  });
+  useEffect(() => {
+    if (canvasRef.current) {
+      initializeParticles();
+    }
+
+    const handleResize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [initializeParticles]);
 
   const lerpColor = (a: string, b: string, t: number) => {
     const ah = parseInt(a.replace(/#/g, ''), 16);

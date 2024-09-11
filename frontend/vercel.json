@@ -4,11 +4,11 @@
   ],
   "builds": [
     {
-      "src": "package.json",
+      "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": { 
-        "distDir": "dist",
-        "prebuild": "npm cache clean --force && rm -rf node_modules"
+        "distDir": "frontend/dist",
+        "prebuild": "cd frontend && npm cache clean --force && rm -rf node_modules"
       }
     }
   ]

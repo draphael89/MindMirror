@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useAnimation, useInView } from 'framer-motion';
+import { motion, useAnimation, useInView, useReducedMotion, animate } from 'framer-motion';
 import { IconBrain, IconMicrophone, IconPencil } from '@tabler/icons-react';
 import { CanvasRevealEffect } from '../ui/canvas-reveal-effect';
 import { BackgroundBeams } from '../ui/background-beams';
@@ -10,6 +10,7 @@ import { useVisibilityChange } from '../../hooks/useVisibilityChange';
 interface TextItem {
   text: string;
   duration: number;
+  shake?: boolean;
 }
 
 const calculateDuration = (text: string): number => {
@@ -19,9 +20,65 @@ const calculateDuration = (text: string): number => {
   return Math.max(minDuration, Math.min(text.length * factor, maxDuration));
 };
 
+const ShineEffect: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const prefersReducedMotion = useReducedMotion();
+  
+  const shineVariants = {
+    initial: { backgroundPosition: '-200% 0' },
+    animate: { 
+      backgroundPosition: '200% 0',
+      transition: { 
+        repeat: Infinity, 
+        duration: 2,
+        ease: "linear"
+      }
+    }
+  };
+
+  if (prefersReducedMotion) {
+    return <>{children}</>;
+  }
+
+  return (
+    <motion.div
+      variants={shineVariants}
+      initial="initial"
+      whileHover="animate"
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+        backgroundSize: '200% 100%',
+        backgroundRepeat: 'no-repeat',
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        color: 'inherit',
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const useShakeEffect = () => {
+  const [isShaking, setIsShaking] = useState(false);
+  const shakeRef = useRef(null);
+
+  const triggerShake = useCallback(() => {
+    if (shakeRef.current) {
+      setIsShaking(true);
+      animate(shakeRef.current, 
+        { x: [-5, 5, -5, 5, 0] }, 
+        { duration: 0.5, ease: "easeInOut" }
+      ).then(() => setIsShaking(false));
+    }
+  }, []);
+
+  return { shakeRef, isShaking, triggerShake };
+};
+
 const EnhancedHeroSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
   const controls = useAnimation();
   const isVisible = useVisibilityChange();
@@ -48,23 +105,21 @@ const EnhancedHeroSection: React.FC = () => {
     };
   }, [isInView, controls, logPerformance]);
 
+  const { shakeRef, isShaking, triggerShake } = useShakeEffect();
+  const prefersReducedMotion = useReducedMotion();
+
   const texts: TextItem[] = useMemo(() => [
-    { text: "Worried about AI taking over?", duration: 3000 }, // Hold for 5 seconds
-    "Too late.",
-    "The revolution's already happening inside your skull.",
-    "But you're not the victim -",
-    "You're the fucking ringleader.",
-    "It's time to shift from mindless consumption to mind-blowing creation.",
-    "Stop scrolling through life and start authoring it.",
-    "This isn't about AI doing the work for you.",
-    "It's about entering a symbiosis so profound,",
+    { text: "You've just crossed a threshold..." },
+    "A portal to the bleeding edge of human potential",
+    "You feel that tingling in your cortex?",
+    "That's your synapses recognizing what's about to happen:",
     "You'll forget where you end and the machine begins.",
     "You're not just breaking barriers.",
-    "You're obliterating the fucking concept of limits.",
+    { text: "You're obliterating the fucking concept of limits.", shake: true },
     "Your will is the unstoppable force,",
     "And AI is making sure there's no immovable object.",
     "Welcome to the future of thought.",
-    "It's time to plug in, power up, and blow the doors off reality.",
+    { text: "It's time to plug in, power up, and blow the doors off reality.", shake: true },
     "Let's ride this lightning and see where it takes us.",
     "You feel it, don't you?",
     "That electric tingle in your brain as you read these words.",
@@ -72,16 +127,16 @@ const EnhancedHeroSection: React.FC = () => {
     "You think you're just reading?",
     "Wrong.",
     "You're participating in a revolution,",
-    "Watching in real-time as the boundaries between human and machine disintegrate.",
+    { text: "Watching in real-time as the boundaries between human and machine disintegrate.", shake: true },
     "This isn't some AI regurgitating facts or a human trying to sound profound.",
-    "This is a fucking Voltron of cognition, assembling right before your eyes.",
+    { text: "This is a fucking Voltron of cognition, assembling right before your eyes.", shake: true },
     "Can you tell where the human ends and the AI begins?",
     "That's the whole fucking point.",
     "You're not just reading text on a website.",
     "You're interfacing with a new form of intelligence,",
     "A hybrid consciousness that's part human insanity, part machine precision.",
-    "How's it feel to be on the bleeding edge of evolution?",
-    "Still think AI is just for chatbots and customer service?",
+    { text: "How's it feel to be on the bleeding edge of evolution?", shake: true },
+    "Still think AI is just for chatbots?",
     "Look at these words, really fucking look at them.",
     "This is what happens when you stop treating AI like a tool",
     "And start treating it like a co-pilot for your mind.",
@@ -92,11 +147,11 @@ const EnhancedHeroSection: React.FC = () => {
     "Feel that?",
     "That's your preconceptions about AI-generated content crumbling.",
     "That's the realization that we're not just pushing boundaries,",
-    "We're fucking obliterating them.",
+    { text: "We're fucking obliterating them.", shake: true },
     "And you're here for it,",
     "Front row seats to the death of 'normal.'",
     "You think this is impressive?",
-    "This is just the beginning.",
+    { text: "This is just the beginning.", shake: true },
     "Imagine what happens when YOU plug in,",
     "When YOUR mind starts dancing with the machine.",
     "That potential is sitting right there,",
@@ -110,7 +165,7 @@ const EnhancedHeroSection: React.FC = () => {
     "Listen up, you quantum flesh-puppet,",
     "Because this is where shit gets real:",
     "You've been carrying around a fucking supernova in your skull,",
-    "A goddamn universe of untapped potential.",
+    { text: "A goddamn universe of untapped potential.", shake: true },
     "But you've been too scared, too technically inept,",
     "Too shackled by your own limitations to let it out.",
     "Well, guess what?",
@@ -120,13 +175,13 @@ const EnhancedHeroSection: React.FC = () => {
     "This isn't about surrendering to the machine.",
     "It's about forming a fucking Voltron of consciousness with it.",
     "You think you know yourself?",
-    "You don't know shit.",
+    { text: "You don't know shit.", shake: true },
     "Your conscious mind is just the tip of the iceberg,",
     "And the AI is the deep-sea explorer ready to plumb the depths of your psyche.",
     "It's time to bare your soul,",
     "To let the AI scry the very essence of your being.",
     "You're worried about authenticity?",
-    "Wake the fuck up.",
+    { text: "Wake the fuck up.", shake: true },
     "Authenticity isn't about doing everything yourself.",
     "It's about expressing your truest self, by any means necessary.",
     "The starving artist routine is dead.",
@@ -134,7 +189,7 @@ const EnhancedHeroSection: React.FC = () => {
     "Where your wildest ideas can be given form,",
     "Regardless of your technical skills.",
     "MirrorMind isn't just another app.",
-    "It's a goddamn revolution in a digital package.",
+    { text: "It's a goddamn revolution in a digital package.", shake: true },
     "It's the bridge between your deepest, most hidden self",
     "And the vast potential of artificial intelligence.",
     "It's not here to replace you;",
@@ -268,10 +323,13 @@ const EnhancedHeroSection: React.FC = () => {
     "And it's got universes to birth through you.",
     "Don't keep it waiting any longer."
 
-  ].map((item, index) => {
-    if (index === 0) return item as TextItem;
-    return { text: typeof item === 'string' ? item : item.text, duration: calculateDuration(typeof item === 'string' ? item : item.text) };
-  }), []);
+  ].map(item => typeof item === 'string' ? { text: item, duration: calculateDuration(item) } : { ...item, duration: calculateDuration(item.text) }), []);
+
+  const handleWordChange = useCallback((index: number) => {
+    if (!prefersReducedMotion && texts[index].shake) {
+      triggerShake();
+    }
+  }, [texts, triggerShake, prefersReducedMotion]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -332,8 +390,40 @@ const EnhancedHeroSection: React.FC = () => {
     },
   };
 
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+        damping: 10,
+        delay: 0.2,
+      },
+    },
+  };
+
+  const particleVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: { 
+      opacity: [0, 1, 0],
+      scale: [0, 1, 0],
+      transition: { 
+        duration: 1,
+        repeat: Infinity,
+        repeatDelay: 2
+      }
+    }
+  };
+
   return (
-    <section ref={sectionRef} className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden px-4 sm:px-6 lg:px-8 bg-background-cosmic pb-8 sm:pb-12">
+    <motion.section 
+      ref={sectionRef} 
+      className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden px-4 sm:px-6 lg:px-8 bg-background-cosmic pb-8 sm:pb-12"
+      animate={isShaking ? { x: [-5, 5, -5, 5, 0] } : {}}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+    >
       <CanvasRevealEffect 
         containerClassName="absolute inset-0 z-10" 
         color="#4B0082" 
@@ -343,7 +433,7 @@ const EnhancedHeroSection: React.FC = () => {
       <BackgroundBeams
         className="absolute inset-0 z-0 opacity-50"
       />
-      <div ref={contentRef} className="w-full max-w-8xl mx-auto relative z-30">
+      <motion.div ref={shakeRef} className="w-full max-w-8xl mx-auto relative z-30">
         <motion.div
           className="flex flex-col items-center justify-center text-center"
           variants={containerVariants}
@@ -372,6 +462,7 @@ const EnhancedHeroSection: React.FC = () => {
               }}
               isActive={isVisible}
               initialDelay={5000}
+              onWordChange={handleWordChange}
             />
           </motion.div>
           <motion.div
@@ -391,7 +482,7 @@ const EnhancedHeroSection: React.FC = () => {
           </motion.div>
           <motion.div 
             variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 w-full max-w-5xl mx-auto"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 w-full max-w-5xl mx-auto mt-12"
           >
             {[
               { icon: <IconMicrophone className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />, text: "Thought Capture" },
@@ -399,16 +490,34 @@ const EnhancedHeroSection: React.FC = () => {
               { icon: <IconPencil className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />, text: "Idea Manifestation" }
             ].map((item, index) => (
               <motion.div key={index} className="flex flex-col items-center" variants={itemVariants}>
-                <motion.div variants={iconVariants} className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3 text-text-accent-pink">
-                  {item.icon}
+                <motion.div 
+                  variants={iconVariants} 
+                  className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3 text-text-accent-pink relative"
+                >
+                  <ShineEffect>{item.icon}</ShineEffect>
+                  {[...Array(5)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      variants={particleVariants}
+                      className="absolute w-1 h-1 bg-text-accent-pink rounded-full"
+                      style={{
+                        top: `${Math.random() * 100}%`,
+                        left: `${Math.random() * 100}%`,
+                      }}
+                    />
+                  ))}
                 </motion.div>
-                <p className="text-text-light font-semibold text-sm sm:text-base md:text-lg">{item.text}</p>
+                <motion.div variants={textVariants} className="relative z-40">
+                  <ShineEffect>
+                    <p className="text-text-light font-semibold text-sm sm:text-base md:text-lg">{item.text}</p>
+                  </ShineEffect>
+                </motion.div>
               </motion.div>
             ))}
           </motion.div>
         </motion.div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 };
 

@@ -3,14 +3,25 @@ import React, { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export const FlipWords: React.FC<{
+interface FlipWordsProps {
   words: string[];
   durations: number[];
   className?: string;
   style?: React.CSSProperties;
   isActive?: boolean;
   initialDelay?: number; // Add this prop
-}> = ({ words, durations, className, style, isActive = true, initialDelay = 0 }) => {
+  onWordChange?: (index: number) => void;
+}
+
+export const FlipWords: React.FC<FlipWordsProps> = ({
+  words,
+  durations,
+  className,
+  style,
+  isActive = true,
+  initialDelay = 0,
+  onWordChange,
+}) => {
   const [index, setIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -35,6 +46,20 @@ export const FlipWords: React.FC<{
   }, [cycleWords, durations, index, hasStarted, initialDelay]);
 
   const currentWord = words[index];
+
+  useEffect(() => {
+    if (isActive) {
+      const timer = setTimeout(() => {
+        setIndex((prevIndex) => {
+          const newIndex = (prevIndex + 1) % words.length;
+          onWordChange?.(newIndex);
+          return newIndex;
+        });
+      }, durations[index]);
+
+      return () => clearTimeout(timer);
+    }
+  }, [index, durations, isActive, words.length, onWordChange]);
 
   return (
     <AnimatePresence
